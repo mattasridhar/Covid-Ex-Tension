@@ -19,9 +19,9 @@ const sendValueToBackgroundScript = (inputValue) => {
   let pageContent = {
     message: inputValue,
   };
+  // Sending and waiting for response from Background
   //   chrome.runtime.sendMessage(pageContent);
   chrome.runtime.sendMessage(pageContent, function (response) {
-    //here response will be the word you want
     console.log("SRI in PageScript resp: ", response);
   });
 };
@@ -34,8 +34,5 @@ const captureExtensionEvents = () => {
     sendValueToBackgroundScript(inputValue.value);
   });
 };
-
-// var selection = chrome.extension.getBackgroundPage().word;
-// alert(selection);
 
 document.addEventListener("DOMContentLoaded", captureExtensionEvents, false);
