@@ -1,3 +1,5 @@
+import { MapCreator } from "./MapCreator.js";
+
 console.log("SRI in pageScript");
 
 const sendValueToContentScript = (inputValue) => {
@@ -22,6 +24,7 @@ const sendValueToBackgroundScript = (inputValue) => {
   // Sending and waiting for response from Background
   //   chrome.runtime.sendMessage(pageContent);
   chrome.runtime.sendMessage(pageContent, function (response) {
+    // Listening to response from background Script
     console.log("SRI in PageScript resp: ", response);
   });
 };
@@ -29,10 +32,12 @@ const sendValueToBackgroundScript = (inputValue) => {
 const captureExtensionEvents = () => {
   document.getElementById("submit").addEventListener("click", () => {
     let inputValue = document.getElementById("myInput");
-    // console.log("SRI value: ", inputValue.value);
+    console.log("SRI value: ", inputValue.value);
     // sendValueToContentScript(inputValue.value);
     sendValueToBackgroundScript(inputValue.value);
   });
 };
+
+const createdMap = MapCreator();
 
 document.addEventListener("DOMContentLoaded", captureExtensionEvents, false);

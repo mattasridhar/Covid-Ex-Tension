@@ -1,4 +1,26 @@
 console.log("SRI in background");
+
+let countrySelected = "canada";
+let provinceSelected = "ontario";
+let citySelected = "waterloo";
+
+let apiBaseUrl = `https://api.covid19api.com/`;
+let countryNames = [];
+
+// Get all country Names for which we have Covid information
+const getCountryNames = async () => {
+  const apiCountriesURL = `${apiBaseUrl}countries`;
+  await fetch(apiCountriesURL)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("SRI in loadJSON: ", data);
+    })
+    .catch((error) => {
+      console.log("Error occured while fetching Data: ", error);
+    });
+};
+getCountryNames();
+
 // Perform actions only when the Extension is clicked
 chrome.browserAction.onClicked.addListener((tab) => {
   console.log("SRI Extension Clicked!");
@@ -15,3 +37,5 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   //       word = msg.check;
   if (msg.message === "SRIDHAR") sendResponse("SRI heard");
 });
+
+// Get the Covid Information
