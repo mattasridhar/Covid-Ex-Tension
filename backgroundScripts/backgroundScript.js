@@ -6,6 +6,8 @@ let citySelected = "waterloo";
 
 let apiBaseUrl = `https://api.covid19api.com/`;
 let countryNames = [];
+let countryCodes = [];
+window.count = 0;
 
 // Get all country Names for which we have Covid information
 const getCountryNames = async () => {
@@ -13,7 +15,17 @@ const getCountryNames = async () => {
   await fetch(apiCountriesURL)
     .then((response) => response.json())
     .then((data) => {
-      console.log("SRI in loadJSON: ", data);
+      console.log("SRI in loadJSON: ");
+      data.forEach((entry) => {
+        // console.log(
+        //   "Country Entry: ",
+        //   entry.Country,
+        //   " Country Code: ",
+        //   entry.ISO2
+        // );
+        countryNames.push(entry.Country);
+        countryCodes.push(entry.ISO2);
+      });
     })
     .catch((error) => {
       console.log("Error occured while fetching Data: ", error);
@@ -32,10 +44,16 @@ chrome.browserAction.onClicked.addListener((tab) => {
 
 // Listen to messages coming from Extension page
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-  console.log("SRI in bg onMsg: ", msg);
+  console.log("SRI in bg onMsg: ", msg.message);
   //   if(msg.check)
   //       word = msg.check;
-  if (msg.message === "SRIDHAR") sendResponse("SRI heard");
+  if (msg.message === "extensionLoaded") {
+    sendResponse({ countryNames, countryCodes });
+  }
+
+  if (msg.message === "SRIDHAR") {
+    sendResponse("SRI heard");
+  }
 });
 
 // Get the Covid Information
