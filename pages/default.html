@@ -23,11 +23,21 @@
     </div>
     <div id='content'>
         <h4>Choose your Country: </h4>
-        <select id="countriesList"></select>
-        <button id="submit" type="button">OK</button>
+        <div id="countryDropdown">
+            <select id="countriesList"></select></div>
+        <div id="provinceDropdown">
+            <img src="../assets/provinceLoader.gif" alt="provinceLoading" id="provinceLoader" />
+            <select id="provincesList"></select>
+        </div>
+        <div id="buttonsDiv">
+            <button id="submitButton" type="button">Submit!</button>
+            <button id="updateButton" type="button">Update!</button>
+        </div>
 
-
-        <div id="mapid"></div>
+        <div id="myMap">
+            <img src="../assets/mapLoader.gif" alt="mapLoading" id="mapLoader" />
+            <div id="mapid"></div>
+        </div>
     </div>
     <!-- My handler script -->
     <!-- <script src="../scripts/pageScript.js" type="text/javascript"></script> -->
