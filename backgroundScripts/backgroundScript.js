@@ -10,7 +10,17 @@ let countryCodes = ["opt"];
 window.country = "Select your country";
 window.province = "Select your province";
 let provinceNames = ["Select your province"];
-let covidData = [];
+
+window.isMapShown = false;
+window.latitude = 0;
+window.longitude = 0;
+window.zoomType = "";
+window.covidData = [];
+window.covidDisplayInfo = {
+  confirmed: 0,
+  recovered: 0,
+  deaths: 0,
+};
 
 let msgToExtension = {
   message: {},
@@ -45,40 +55,30 @@ getCountryNames();
 const getCovidInfo = async (countryCode) => {
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, "0");
+  const yd = String(now.getDate() - 1).padStart(2, "0");
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const yyyy = now.getFullYear();
 
   const today = `${yyyy}-${mm}-${dd}T00:00:00Z`;
-  console.log("Today Date: ", today, " Country: ", countryCode);
+  const yesterday = `${yyyy}-${mm}-${yd}T00:00:00Z`;
+  // console.log("Today Date: ", today, " Country: ", countryCode);
   const apiCovidInfoURL = `${apiBaseUrl}country/${countryCode}?from=2020-03-01T00:00:00Z&to=${today}`;
   await fetch(apiCovidInfoURL)
     .then((response) => response.json())
     .then((data) => {
       // console.log("SRI in loadJSON: ");
       data.forEach((entry) => {
-        // console.log("Covid Response: ", entry);
-        covidData.push(entry);
+        // console.log("Covid Response: ", entry.Country, " Date: ", entry.Date);
+        // Store the latest covid Data
+        if (entry.Date === yesterday) {
+          // console.log("Covid Response today: ", entry);
+
+          covidData.push(entry);
+        }
         if (entry.Province !== "" && !provinceNames.includes(entry.Province)) {
           provinceNames.push(entry.Province);
         }
       });
-      /* msgToExtension.message = {
-        covidData,
-        provinceNames,
-        defaultProvince: window.province,
-      };
-      msgToExtension.type = "covidInfo";
-      console.log("SRI getCovid msgToExtnsion: ", msgToExtension);
-
-      chrome.runtime.onMessage.addListener(function (
-        msgFromExtension,
-        sender,
-        sendResponse
-      ) {
-        console.log("SRI in bg onMsg: ");
-
-        sendResponse(msgToExtension);
-      }); */
     })
     .catch((error) => {
       console.log("Error occured while fetching Covid Data: ", error);
@@ -88,7 +88,7 @@ const getCovidInfo = async (countryCode) => {
 // Perform actions only when the Extension is clicked
 chrome.browserAction.onClicked.addListener((tab) => {
   // console.log("SRI Extension Clicked!");
-  msgToExtension.message = { defaultCountry: window.country };
+  msgToExtension.message = { defaultCountry: country };
   msgToExtension.type = "extensionToContent";
   chrome.tabs.sendMessage(tab.id, msgToExtension); //send the message to the content script
 });
@@ -101,83 +101,64 @@ chrome.runtime.onMessage.addListener(function (
 ) {
   // console.log("SRI in bg onMsg: ");
   dealWithExtensionMessage(msgFromExtension);
-
-  // sendResponse(dealWithExtensionMessage(msgFromExtension));
 });
 
-/* // For handling the sending and receiving of the Extension messages
-const sendMessageToExtension = () => {
-
-// Listen to messages coming from Extension page
-chrome.runtime.onMessage.addListener(function (
-  msgFromExtension,
-  sender,
-  sendResponse
-) {
-  // console.log("SRI in bg onMsg: ");
-
-  sendResponse(dealWithExtensionMessage(msgFromExtension));
-});
-
-} */
-
-// For handling the sending and receiving of the extension messages
+// For handling the sending and receiving of the Extension messages
 const sendValueToExtension = (msgToExtension) => {
   console.log("SRI sending value to Extension: ", msgToExtension);
 
   // Sending response from Background
   chrome.runtime.sendMessage(msgToExtension);
-  /* chrome.runtime.sendMessage(msgToBackground, function (msgFromBackground) {
-    // Listening to response from background Script
-    // console.log("SRI in PageScript resp: ", msgFromBackground);
-    // window.selectedCountry = response.defaultCountry;
-    handleResponseFromBackground(msgFromBackground);
-  }); */
 };
 
-// Respond as per the message from Extension message
+// Respond as per the message type for each Extension message
 const dealWithExtensionMessage = (msgFromExtension) => {
   switch (msgFromExtension.type) {
     case "extensionLoaded":
-      // console.log("SRI in bg dealWithExtnsnMsg: ", msgFromExtension);
-      // console.log("SRI in bg windowCntry: ", window.country);
       msgToExtension.message = {
         countryNames,
         countryCodes,
-        defaultCountry: window.country,
+        provinceNames,
+        defaultCountry: country,
+        defaultProvince: province,
+        isMapShown,
+        latitude,
+        longitude,
+        zoomType,
+        covidData,
+        covidDisplayInfo,
       };
       msgToExtension.type = "extensionLoaded";
 
       sendValueToExtension(msgToExtension);
       break;
-    // return msgToExtension;
     case "provinceSelected":
-      console.log(
-        "SRI in bg selectdProvince: ",
-        msgFromExtension.message.selectedProvince
-      );
-      window.province = msgFromExtension.message.selectedProvince;
+      // console.log(
+      //   "SRI in bg selectdProvince: ",
+      //   msgFromExtension.message.selectedProvince
+      // );
+      province = msgFromExtension.message.selectedProvince;
       msgToExtension.message = {};
-      msgToExtension.type = "done";
+      msgToExtension.type = "provinceSelected";
       // console.log("SRI msgToExtnsion: ", msgToExtension);
 
       sendValueToExtension(msgToExtension);
       break;
-    // return msgToExtension;
     case "countrySelected":
-      console.log(
-        "SRI in bg selectdCntry: ",
-        msgFromExtension.message.selectedCode
-      );
-      window.country = msgFromExtension.message.selectedCountry;
-      getCovidInfo(window.country).then(() => {
+      // console.log(
+      //   "SRI in bg selectdCntry: ",
+      //   msgFromExtension.message.selectedCode
+      // );
+      country = msgFromExtension.message.selectedCountry;
+      provinceNames = ["Select your province"];
+      province = "Select your province";
+      getCovidInfo(country).then(() => {
         msgToExtension.message = {
           covidData,
           provinceNames,
-          defaultProvince: window.province,
+          defaultProvince: province,
         };
-        msgToExtension.type = "covidInfo"; //"waiting"; //
-        console.log("SRI getCovid then msgToExtnsion: ", msgToExtension);
+        msgToExtension.type = "covidInfo";
 
         sendValueToExtension(msgToExtension);
       });
@@ -187,13 +168,25 @@ const dealWithExtensionMessage = (msgFromExtension) => {
       console.log("SRI msgToExtnsion: ", msgToExtension);
 
       return msgToExtension;
-    // case "waiting":
-    //   msgToExtension.message = {};
-    //   msgToExtension.type = "waiting";
-    //   console.log("SRI waiting msgToExtnsion: ", msgToExtension);
 
-    //   return msgToExtension;
+    case "mapRendered":
+      // console.log("SRI mapRendered msgFrmExtnsion: ", msgFromExtension);
+      isMapShown = msgFromExtension.message.isMapShown;
+      latitude = msgFromExtension.message.latitude;
+      longitude = msgFromExtension.message.longitude;
+      zoomType = msgFromExtension.message.zoomType;
+      covidDisplayInfo = msgFromExtension.message.covidDisplayInfo;
+      covidData = msgFromExtension.message.covidData;
+      msgToExtension.message = {
+        isMapShown,
+        latitude,
+        longitude,
+        zoomType,
+      };
+      msgToExtension.type = "mapRendered";
 
+      sendValueToExtension(msgToExtension);
+      break;
     default:
       break;
   }
