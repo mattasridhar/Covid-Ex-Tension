@@ -5,7 +5,6 @@ export const Marker = (
   zoomType,
   covidDisplayInfo
 ) => {
-  // console.log("SRI in Marker: ", covidDisplayInfo);
   let confirmedRadius = 400;
   let recoveredRadius = 200;
   let deathsRadius = 100;
@@ -20,8 +19,7 @@ export const Marker = (
     deathsRadius = 100000;
   }
 
-  // const marker = L.marker([latitude, longitude]).addTo(covidMap);
-  // return marker;
+  // Create different markers for each Covid case type
   const confirmedMarker = L.circle([latitude, longitude], {
     color: "red",
     fillColor: "#ff4f4f",

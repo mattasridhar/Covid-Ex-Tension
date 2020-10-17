@@ -1,5 +1,3 @@
-// console.log("SRI in background");
-
 let countrySelected = "canada";
 let provinceSelected = "ontario";
 let citySelected = "waterloo";
@@ -33,14 +31,7 @@ const getCountryNames = async () => {
   await fetch(apiCountriesURL)
     .then((response) => response.json())
     .then((data) => {
-      // console.log("SRI in loadJSON: ");
       data.forEach((entry) => {
-        // console.log(
-        //   "Country Entry: ",
-        //   entry.Country,
-        //   " Country Code: ",
-        //   entry.ISO2
-        // );
         countryNames.push(entry.Country);
         countryCodes.push(entry.Slug);
       });
@@ -61,18 +52,13 @@ const getCovidInfo = async (countryCode) => {
 
   const today = `${yyyy}-${mm}-${dd}T00:00:00Z`;
   const yesterday = `${yyyy}-${mm}-${yd}T00:00:00Z`;
-  // console.log("Today Date: ", today, " Country: ", countryCode);
   const apiCovidInfoURL = `${apiBaseUrl}country/${countryCode}?from=2020-03-01T00:00:00Z&to=${today}`;
   await fetch(apiCovidInfoURL)
     .then((response) => response.json())
     .then((data) => {
-      // console.log("SRI in loadJSON: ");
       data.forEach((entry) => {
-        // console.log("Covid Response: ", entry.Country, " Date: ", entry.Date);
         // Store the latest covid Data
         if (entry.Date === yesterday) {
-          // console.log("Covid Response today: ", entry);
-
           covidData.push(entry);
         }
         if (entry.Province !== "" && !provinceNames.includes(entry.Province)) {
@@ -87,7 +73,6 @@ const getCovidInfo = async (countryCode) => {
 
 // Perform actions only when the Extension is clicked
 chrome.browserAction.onClicked.addListener((tab) => {
-  // console.log("SRI Extension Clicked!");
   msgToExtension.message = { defaultCountry: country };
   msgToExtension.type = "extensionToContent";
   chrome.tabs.sendMessage(tab.id, msgToExtension); //send the message to the content script
@@ -99,14 +84,11 @@ chrome.runtime.onMessage.addListener(function (
   sender,
   sendResponse
 ) {
-  // console.log("SRI in bg onMsg: ");
   dealWithExtensionMessage(msgFromExtension);
 });
 
 // For handling the sending and receiving of the Extension messages
 const sendValueToExtension = (msgToExtension) => {
-  console.log("SRI sending value to Extension: ", msgToExtension);
-
   // Sending response from Background
   chrome.runtime.sendMessage(msgToExtension);
 };
@@ -133,22 +115,13 @@ const dealWithExtensionMessage = (msgFromExtension) => {
       sendValueToExtension(msgToExtension);
       break;
     case "provinceSelected":
-      // console.log(
-      //   "SRI in bg selectdProvince: ",
-      //   msgFromExtension.message.selectedProvince
-      // );
       province = msgFromExtension.message.selectedProvince;
       msgToExtension.message = {};
       msgToExtension.type = "provinceSelected";
-      // console.log("SRI msgToExtnsion: ", msgToExtension);
 
       sendValueToExtension(msgToExtension);
       break;
     case "countrySelected":
-      // console.log(
-      //   "SRI in bg selectdCntry: ",
-      //   msgFromExtension.message.selectedCode
-      // );
       country = msgFromExtension.message.selectedCountry;
       provinceNames = ["Select your province"];
       province = "Select your province";
@@ -165,12 +138,8 @@ const dealWithExtensionMessage = (msgFromExtension) => {
 
       msgToExtension.message = {};
       msgToExtension.type = "waiting";
-      console.log("SRI msgToExtnsion: ", msgToExtension);
-
       return msgToExtension;
-
     case "mapRendered":
-      // console.log("SRI mapRendered msgFrmExtnsion: ", msgFromExtension);
       isMapShown = msgFromExtension.message.isMapShown;
       latitude = msgFromExtension.message.latitude;
       longitude = msgFromExtension.message.longitude;
@@ -191,5 +160,3 @@ const dealWithExtensionMessage = (msgFromExtension) => {
       break;
   }
 };
-
-// Get the Covid Information

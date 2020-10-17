@@ -1,11 +1,8 @@
 import { MapCreator } from "./MapCreator.js";
 
-// console.log("SRI in pageScript");
-
 const loaderDiv = document.getElementById("loader");
 const contentDiv = document.getElementById("content");
 const mapDiv = document.getElementById("covidMapDiv");
-// const mapArea = document.getElementById("covidMap");
 const countriesListSelect = document.getElementById("countriesList");
 const provincesListSelect = document.getElementById("provincesList");
 const provinceLoader = document.getElementById("provinceLoader");
@@ -37,13 +34,6 @@ let msgToBackground = {
 
 // Send the readyness of the Extension DOM and listen to the events
 const extensionReady = () => {
-  /* console.log("SRI Extension Ready: ", isMapShown);
-  if (isMapShown) {
-    console.log("SRI Map already shown");
-    mapArea.style.display = "block";
-    mapDiv.style.display = "block";
-    contentDiv.style.display = "contents";
-  } */
   msgToBackground.message = {};
   msgToBackground.type = `extensionLoaded`;
   sendValueToBackgroundScript();
@@ -54,11 +44,9 @@ const extensionReady = () => {
 const captureExtensionEvents = () => {
   // Listening to selection in Countries dropdown
   countriesListSelect.addEventListener("change", () => {
-    // console.log("SRI selected country: ", countriesListSelect.selectedIndex);
     provinceLoader.style.display = "block";
     selectedCountry =
       countriesListSelect.options[countriesListSelect.selectedIndex];
-    // console.log("SRI value: ", selectedCountry.id);
     zoomType = "country";
     provincesListSelect.innerHTML = "";
     selectedProvince = "Select your province";
@@ -68,7 +56,8 @@ const captureExtensionEvents = () => {
       recovered: 0,
       deaths: 0,
     };
-    // sendValueToContentScript(inputValue.value);
+
+    // Notify BackgroundScript and get fresh covid data for the new Country
     msgToBackground.message = {
       selectedCountry: selectedCountry.value,
       selectedCode: selectedCountry.id,
@@ -79,12 +68,11 @@ const captureExtensionEvents = () => {
 
   // Listening to selection in Provinces dropdown
   provincesListSelect.addEventListener("change", () => {
-    // console.log("SRI selected province: ", provincesListSelect.selectedIndex);
     selectedProvince =
       provincesListSelect.options[provincesListSelect.selectedIndex].value;
-    // console.log("SRI province value: ", selectedProvince);
     zoomType = "province";
-    // selectedProvince = selectedProvince;
+
+    // Notify BackgroundScript about the Province selection so that its set on next rendering of the extension UI
     msgToBackground.message = {
       selectedProvince, //: selectedProvince.value,
     };
@@ -94,39 +82,25 @@ const captureExtensionEvents = () => {
 
   // Listening to the Click of Submit button
   submitButton.addEventListener("click", () => {
-    // let selectedCountry =
-    //   countriesListSelect.options[countriesListSelect.selectedIndex];
-    // console.log("SRI value: ", selectedCountry.id);
-    // sendValueToContentScript(inputValue.value);
     updateButton.style.display = "block";
     submitButton.style.display = "none";
-    // mapArea.style.display = "block";
     mapDiv.style.display = "block";
     provinceLoader.style.display = "none";
 
     handleCovidInfo(covidData, selectedProvince);
+    isMapShown = true;
 
-    if (!isMapShown) {
-      console.log(
-        "SRI Map creating: ",
-        covidDisplayInfo,
-        " Country: ",
-        selectedCountry.value,
-        " Province: ",
-        selectedProvince
-      );
-      isMapShown = true;
-      // Create the Map
-      createdMap = MapCreator(
-        createdMap,
-        latitude,
-        longitude,
-        zoomType,
-        covidDisplayInfo
-      );
-    }
+    // Create the Map
+    createdMap = MapCreator(
+      createdMap,
+      latitude,
+      longitude,
+      zoomType,
+      covidDisplayInfo
+    );
     infoText.innerHTML = `COVID Status : # of People Impacted <br> Confirmed: ${covidDisplayInfo.confirmed} <br> Recovered: ${covidDisplayInfo.recovered} <br> Deaths: ${covidDisplayInfo.deaths}`;
 
+    // Notify BackgroundScript about the Map being Rendered
     msgToBackground.message = {
       isMapShown,
       latitude,
@@ -143,17 +117,9 @@ const captureExtensionEvents = () => {
   updateButton.addEventListener("click", () => {
     updateButton.style.display = "block";
     submitButton.style.display = "none";
-    // mapArea.style.display = "block";
     mapDiv.style.display = "block";
     provinceLoader.style.display = "none";
-    console.log(
-      "SRI Map UPDATE: ",
-      covidDisplayInfo,
-      " Country: ",
-      selectedCountry.value,
-      " Province: ",
-      selectedProvince
-    );
+
     handleCovidInfo(covidData, selectedProvince);
 
     isMapShown = true;
@@ -163,6 +129,7 @@ const captureExtensionEvents = () => {
 
     infoText.innerHTML = `COVID Status : # of People Impacted <br> Confirmed: ${covidDisplayInfo.confirmed} <br> Recovered: ${covidDisplayInfo.recovered} <br> Deaths: ${covidDisplayInfo.deaths}`;
 
+    // Notify BackgroundScript about the Map being re-rendered and update the information
     msgToBackground.message = {
       isMapShown,
       latitude,
@@ -182,21 +149,17 @@ chrome.runtime.onMessage.addListener(function (
   sender,
   sendResponse
 ) {
-  // console.log("SRI in extnsion onMsg: ", msgFromBackground);
   handleResponseFromBackground(msgFromBackground);
 });
 
 // For handling the sending and receiving of the background messages
 const sendValueToBackgroundScript = () => {
-  // console.log("SRI sending value to BackgroundScript: ", msgToBackground);
-
   // Sending to Background
   chrome.runtime.sendMessage(msgToBackground);
 };
 
 // Handle the response from the background based on the response type respoectively
 const handleResponseFromBackground = (backgroundResponse) => {
-  // console.log("SRI in handleBgResp: ", backgroundResponse);
   switch (backgroundResponse.type) {
     case "extensionLoaded":
       if (backgroundResponse.message.isMapShown) {
@@ -209,14 +172,10 @@ const handleResponseFromBackground = (backgroundResponse) => {
         covidData = backgroundResponse.message.covidData;
         covidDisplayInfo = backgroundResponse.message.covidDisplayInfo;
 
-        // console.log("SRI Map already shown");
-        // mapArea.style.display = "block";
         mapDiv.style.display = "block";
         contentDiv.style.display = "contents";
         submitButton.style.display = "none";
         updateButton.style.display = "block";
-
-        // handleCovidInfo(covidData, selectedProvince);
 
         createdMap = MapCreator(
           createdMap,
@@ -228,17 +187,7 @@ const handleResponseFromBackground = (backgroundResponse) => {
         infoText.innerHTML = `COVID Status : # of People Impacted <br> Confirmed: ${covidDisplayInfo.confirmed} <br> Recovered: ${covidDisplayInfo.recovered} <br> Deaths: ${covidDisplayInfo.deaths}`;
       }
 
-      /* if (
-        backgroundResponse.message.defaultCountry.toLowerCase() !==
-        defaultOption.toLowerCase()
-      ) {
-        console.log(
-          "SRI country previously selected: ",
-          backgroundResponse.message.defaultCountry
-        );
-      } else */ if (
-        backgroundResponse.message.countryNames.length !== 0
-      ) {
+      if (backgroundResponse.message.countryNames.length !== 0) {
         loaderDiv.style.display = "none";
         contentDiv.style.display = "contents";
         provinceLoader.style.display = "block";
@@ -272,7 +221,6 @@ const handleResponseFromBackground = (backgroundResponse) => {
         backgroundResponse.message.defaultProvince
       );
       covidData = backgroundResponse.message.covidData;
-      // handleCovidInfo(backgroundResponse.message.covidData);
       break;
     case "mapRendered":
       isMapShown = backgroundResponse.message.isMapShown;
@@ -289,9 +237,15 @@ const handleResponseFromBackground = (backgroundResponse) => {
 
 // Extract the required covid Information from the received Covid Data
 const handleCovidInfo = (data, provinceName) => {
-  // console.log("SRI handleCovidInfo: ", data, " Province: ", provinceName);
   let latArray = [];
   let longArray = [];
+  latitude = 0;
+  longitude = 0;
+  covidDisplayInfo = {
+    confirmed: 0,
+    recovered: 0,
+    deaths: 0,
+  };
   data.forEach(function (covidEntry) {
     // If Province is available and an option is Selected then store its Latitude and Longitude. Else store the Latitude & Longitude information in an Array
     if (
@@ -302,27 +256,12 @@ const handleCovidInfo = (data, provinceName) => {
         defaultProvinceOption.trim().toLowerCase() &&
       covidEntry.Province === provinceName
     ) {
-      /* onsole.log(
-        "SRI has a province: ",
-        covidEntry.Province,
-        " Latitute: ",
-        covidEntry.Lat,
-        " Longitude: ",
-        covidEntry.Lon
-      );
-      console.log(
-        "SRI has a confirmed: ",
-        covidEntry.Confirmed,
-        " Recovered: ",
-        covidEntry.Recovered,
-        " Deaths: ",
-        covidEntry.Deaths
-      ); */
       latitude = covidEntry.Lat;
       longitude = covidEntry.Lon;
       covidDisplayInfo.confirmed = covidEntry.Confirmed;
       covidDisplayInfo.recovered = covidEntry.Recovered;
       covidDisplayInfo.deaths = covidEntry.Deaths;
+      zoomType = "country";
     } else {
       latArray.push(covidEntry.Lat);
       longArray.push(covidEntry.Lon);
@@ -341,25 +280,14 @@ const handleCovidInfo = (data, provinceName) => {
     provinceName.trim().toLowerCase() ===
       defaultProvinceOption.trim().toLowerCase()
   ) {
-    // console.log("SRI array info: ", latArray, " long: ", longArray);
     const minLat = Math.min(...latArray);
     const maxLat = Math.max(...latArray);
     const minLong = Math.min(...longArray);
     const maxLong = Math.max(...longArray);
-    /* console.log(
-      "SRI minLat: ",
-      minLat,
-      " maxLat: ",
-      maxLat,
-      " minLong: ",
-      minLong,
-      " maxLong: ",
-      maxLong
-    ); */
+
     latitude = (minLat + maxLat) / 2;
     longitude = (minLong + maxLong) / 2;
   }
-  // console.log("SRI covid displayInfo: ", covidDisplayInfo);
 };
 
 // Populates the Countries dropdown list
@@ -418,8 +346,8 @@ const populateProvinces = (provinceNames, defaultProvince) => {
   }
 };
 
+// Not used but can be used for more interaction
 const sendValueToContentScript = (inputValue) => {
-  console.log("SRI sending value to ContentScript: ", inputValue);
   const params = {
     active: true,
     currentWindow: true,
