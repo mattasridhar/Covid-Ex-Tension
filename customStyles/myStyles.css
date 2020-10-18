@@ -1,0 +1,53 @@
+body {
+  width: 250px;
+  height: 250px;
+  align-items: center;
+  align-content: center;
+  flex: auto;
+}
+
+#loader > img {
+  width: 200px;
+  height: 150px;
+  padding: 24px;
+  display: block;
+}
+
+#content {
+  width: 200px;
+  height: 150px;
+  display: none;
+}
+
+#mapLoader,
+#provinceLoader,
+#provincesList,
+#updateButton {
+  display: none;
+}
+
+#countryDropdown,
+#provinceDropdown {
+  padding-bottom: 5px;
+  display: block;
+  justify-content: space-around;
+}
+
+#countriesList,
+#provincesList {
+  width: 180px;
+  height: 24px;
+  overflow-y: auto;
+}
+
+#provinceLoader {
+  width: 80px;
+  height: 24px;
+}
+
+#covidMapDiv {
+  width: 250px;
+  height: 175px;
+  padding: 5px;
+  display: none;
+}

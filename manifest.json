@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "Covid-Ex-Tension",
+  "version": "0.1",
+  "web_accessible_resources": ["assets/*.png", "assets/*.gif"],
+  "icons": {
+    "16": "assets/favicon16.png",
+    "48": "assets/favicon48.png",
+    "128": "assets/favicon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>", "https://*.github.com/*"],
+      "js": ["contentScripts/contentScript.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["backgroundScripts/backgroundScript.js"]
+  },
+  "browser_action": {
+    "default_icon": "assets/favicon128.png",
+    "default_popup": "pages/default.html"
+  },
+  "permissions": ["tabs"]
+}
