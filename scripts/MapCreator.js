@@ -15,7 +15,7 @@ export const MapCreator = (
   zoomType,
   covidDisplayInfo
 ) => {
-  let mapArea = document.getElementById("covidMapDiv");
+  const mapArea = document.getElementById("covidMapDiv");
   let zoomLevel = 0;
   if (zoomType === "country") {
     zoomLevel = 1.5;

@@ -125,6 +125,7 @@ const dealWithExtensionMessage = (msgFromExtension) => {
       country = msgFromExtension.message.selectedCountry;
       provinceNames = ["Select your province"];
       province = "Select your province";
+      covidData = [];
       getCovidInfo(country).then(() => {
         msgToExtension.message = {
           covidData,

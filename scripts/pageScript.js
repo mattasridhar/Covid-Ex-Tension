@@ -51,6 +51,7 @@ const captureExtensionEvents = () => {
     provincesListSelect.innerHTML = "";
     selectedProvince = "Select your province";
     infoText.innerHTML = "";
+    covidData = [];
     covidDisplayInfo = {
       confirmed: 0,
       recovered: 0,
@@ -125,7 +126,13 @@ const captureExtensionEvents = () => {
     isMapShown = true;
 
     // Create the Map
-    MapCreator(createdMap, latitude, longitude, zoomType, covidDisplayInfo);
+    createdMap = MapCreator(
+      createdMap,
+      latitude,
+      longitude,
+      zoomType,
+      covidDisplayInfo
+    );
 
     infoText.innerHTML = `COVID Status : # of People Impacted <br> Confirmed: ${covidDisplayInfo.confirmed} <br> Recovered: ${covidDisplayInfo.recovered} <br> Deaths: ${covidDisplayInfo.deaths}`;
 
@@ -246,6 +253,7 @@ const handleCovidInfo = (data, provinceName) => {
     recovered: 0,
     deaths: 0,
   };
+
   data.forEach(function (covidEntry) {
     // If Province is available and an option is Selected then store its Latitude and Longitude. Else store the Latitude & Longitude information in an Array
     if (
